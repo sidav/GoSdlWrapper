@@ -55,6 +55,10 @@ func Clear() {
 
 // draw funcs
 
+func SetColor(r, g, b uint8) {
+	renderer.SetDrawColor(r, g, b, 255)
+}
+
 func DrawLine(x, y, x1, y1 int32) {
 	renderer.DrawLine(x, y, x1, y1)
 }
@@ -121,4 +125,5 @@ func FillCircle(x0, y0, radius int32) {
 			err += dx - (radius << 1)
 		}
 	}
+
 }
