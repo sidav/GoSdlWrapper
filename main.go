@@ -7,13 +7,13 @@ import (
 
 func main() {
 
-	sdl.Init("SDL WRAPPER TEST", 320, 200)
+	sdl.Init("SDL WRAPPER TEST", 800, 600)
 
 	defer sdl.Defer_me()
 
 	sdl.Clear()
 
-	sdl.DrawCircle(75, 75, 50)
+	sdl.FillCircle(400, 300, 250)
 
 	sdl.Flush()
 
