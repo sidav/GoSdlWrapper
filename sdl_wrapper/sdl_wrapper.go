@@ -27,16 +27,16 @@ func Init(title string, w, h int32) {
 	window, err := sdl.CreateWindow(title, sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,
 		w, h, sdl.WINDOW_SHOWN)
 
-	//if font, err = ttf.OpenFont("test.ttf", 32); err != nil {
-	//	panic(err)
-	//}
+	if font, err = ttf.OpenFont("test.ttf", 32); err != nil {
+		panic(err)
+	}
 
 	surface, err = window.GetSurface()
 	if err != nil {
 		panic(err)
 	}
 
-	renderer, err = sdl.CreateSoftwareRenderer(surface)
+	renderer, err = sdl.CreateRenderer(window, -1, sdl.RENDERER_SOFTWARE)
 	if err != nil {
 		panic(err)
 	}
@@ -59,9 +59,10 @@ func Defer_me() {
 // clear/flush funcs
 
 func Flush() {
-	rect := sdl.Rect{0, 0, 200, 200}
+	rect := sdl.Rect{300, 200, 200, 200}
 	surface.FillRect(&rect, 0xffff0000)
 	window.UpdateSurface()
+	renderer.Present()
 }
 
 func Clear() {

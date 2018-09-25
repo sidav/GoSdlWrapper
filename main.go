@@ -39,7 +39,7 @@ func main() {
 
 	fmt.Print(total)
 
-	// sdl.PutString(0, 0, "WOLOLO")
+	sdl.PutString(0, 0, "WOLOLO")
 
 	sdl.Flush()
 
