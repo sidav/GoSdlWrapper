@@ -27,7 +27,7 @@ func main() {
 		sdl.SetColor(r, g, b)
 		x := rand.Int31n(800)
 		y := rand.Int31n(600)
-		rad := rand.Int31n(400)
+		rad := rand.Int31n(10)
 		sdl.FillCircle(x, y, rad)
 
 		total++

@@ -3,6 +3,7 @@ package sdl_wrapper
 import (
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
+	"time"
 )
 
 var (
@@ -36,10 +37,12 @@ func Init(title string, w, h int32) {
 		panic(err)
 	}
 
-	renderer, err = sdl.CreateRenderer(window, -1, sdl.RENDERER_SOFTWARE)
+	renderer, err = window.GetRenderer() //window.GetRenderer()
 	if err != nil {
 		panic(err)
 	}
+
+	time.Sleep(time.Millisecond * 1000)
 
 }
 
@@ -59,14 +62,13 @@ func Defer_me() {
 // clear/flush funcs
 
 func Flush() {
-	rect := sdl.Rect{300, 200, 200, 200}
-	surface.FillRect(&rect, 0xffff0000)
-	window.UpdateSurface()
+
 	renderer.Present()
+	window.UpdateSurface()
 }
 
 func Clear() {
-	renderer.Clear()
+	//renderer.Clear()
 }
 
 // draw funcs
@@ -89,6 +91,7 @@ func PutString(x, y int32, str string) {
 		panic(err)
 	}
 
+	solid.GetColorKey()
 	if err = solid.Blit(nil, surface, nil); err != nil {
 		panic(err)
 	}
