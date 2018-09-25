@@ -1,15 +1,15 @@
 package sdl_wrapper
 
 import (
-	"fmt"
 	"github.com/veandco/go-sdl2/sdl"
-	"os"
+	"github.com/veandco/go-sdl2/ttf"
 )
 
 var (
-	window sdl.Window
-	// surface *sdl.Surface
+	window   sdl.Window
+	surface  *sdl.Surface
 	renderer *sdl.Renderer
+	font     *ttf.Font
 )
 
 // system funcs
@@ -20,33 +20,48 @@ func Init(title string, w, h int32) {
 		panic(err)
 	}
 
+	if err := ttf.Init(); err != nil {
+		panic(err)
+	}
+
 	window, err := sdl.CreateWindow(title, sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,
 		w, h, sdl.WINDOW_SHOWN)
 
-	//surface, err = window.GetSurface()
-	//if err != nil {
+	//if font, err = ttf.OpenFont("test.ttf", 32); err != nil {
 	//	panic(err)
 	//}
 
-	renderer, err = sdl.CreateRenderer(window, -1, sdl.RENDERER_ACCELERATED)
+	surface, err = window.GetSurface()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to create renderer: %s\n", err)
+		panic(err)
+	}
+
+	renderer, err = sdl.CreateSoftwareRenderer(surface)
+	if err != nil {
 		panic(err)
 	}
 
 }
 
 func Defer_me() {
+	font.Close()
 	sdl.Quit()
 	window.Destroy()
 	renderer.Destroy()
 }
 
+///
+///
+/////
+///////
+/////////
+
 // clear/flush funcs
 
 func Flush() {
-	// window.UpdateSurface()
-	renderer.Present()
+	rect := sdl.Rect{0, 0, 200, 200}
+	surface.FillRect(&rect, 0xffff0000)
+	window.UpdateSurface()
 }
 
 func Clear() {
@@ -61,6 +76,22 @@ func SetColor(r, g, b uint8) {
 
 func DrawLine(x, y, x1, y1 int32) {
 	renderer.DrawLine(x, y, x1, y1)
+}
+
+func PutString(x, y int32, str string) {
+	var (
+		solid *sdl.Surface
+		err   error
+	)
+
+	if solid, err = font.RenderUTF8Solid(str, sdl.Color{255, 0, 0, 255}); err != nil {
+		panic(err)
+	}
+
+	if err = solid.Blit(nil, surface, nil); err != nil {
+		panic(err)
+	}
+
 }
 
 func DrawCircle(x0, y0, radius int32) {
