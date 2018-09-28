@@ -1,6 +1,7 @@
 package sdl_wrapper
 
 import (
+	"fmt"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
 	"time"
@@ -37,7 +38,7 @@ func Init(title string, w, h int32) {
 		panic(err)
 	}
 
-	renderer, err = window.GetRenderer() //window.GetRenderer()
+	renderer, err = sdl.CreateRenderer(window, -1, sdl.RENDERER_SOFTWARE)
 	if err != nil {
 		panic(err)
 	}
@@ -62,9 +63,8 @@ func Defer_me() {
 // clear/flush funcs
 
 func Flush() {
-
 	renderer.Present()
-	window.UpdateSurface()
+	// window.UpdateSurface()
 }
 
 func Clear() {
@@ -79,6 +79,38 @@ func SetColor(r, g, b uint8) {
 
 func DrawLine(x, y, x1, y1 int32) {
 	renderer.DrawLine(x, y, x1, y1)
+}
+
+func WaitKey() rune {
+	break_loop := false
+	for !break_loop {
+		event := sdl.WaitEvent() // wait here until an event is in the event queue
+		switch t := event.(type) {
+		case *sdl.KeyboardEvent:
+			fmt.Printf("[%d ms] Keyboard\ttype:%d\tsym:%c\tmodifiers:%d\tstate:%d\trepeat:%d\n",
+				t.Timestamp, t.Type, t.Keysym.Sym, t.Keysym.Mod, t.State, t.Repeat)
+			break_loop = true
+		}
+	}
+
+}
+
+func workEvents() {
+	event := sdl.WaitEvent() // wait here until an event is in the event queue
+	switch t := event.(type) {
+	case *sdl.MouseMotionEvent:
+		fmt.Printf("[%d ms] MouseMotion\ttype:%d\tid:%d\tx:%d\ty:%d\txrel:%d\tyrel:%d\n",
+			t.Timestamp, t.Type, t.Which, t.X, t.Y, t.XRel, t.YRel)
+	case *sdl.MouseButtonEvent:
+		fmt.Printf("[%d ms] MouseButton\ttype:%d\tid:%d\tx:%d\ty:%d\tbutton:%d\tstate:%d\n",
+			t.Timestamp, t.Type, t.Which, t.X, t.Y, t.Button, t.State)
+	case *sdl.MouseWheelEvent:
+		fmt.Printf("[%d ms] MouseWheel\ttype:%d\tid:%d\tx:%d\ty:%d\n",
+			t.Timestamp, t.Type, t.Which, t.X, t.Y)
+	case *sdl.KeyboardEvent:
+		fmt.Printf("[%d ms] Keyboard\ttype:%d\tsym:%c\tmodifiers:%d\tstate:%d\trepeat:%d\n",
+			t.Timestamp, t.Type, t.Keysym.Sym, t.Keysym.Mod, t.State, t.Repeat)
+	}
 }
 
 func PutString(x, y int32, str string) {

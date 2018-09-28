@@ -29,10 +29,12 @@ func main() {
 		y := rand.Int31n(600)
 		rad := rand.Int31n(10)
 		sdl.FillCircle(x, y, rad)
+		sdl.Flush()
+		sdl.WaitKey()
 
 		total++
 
-		if time.Since(start) > time.Millisecond*1000 {
+		if time.Since(start) > time.Millisecond*1000 && total > 1000 {
 			break
 		}
 	}
@@ -41,7 +43,5 @@ func main() {
 
 	sdl.PutString(0, 0, "WOLOLO")
 
-	sdl.Flush()
-
-	time.Sleep(5000 * time.Millisecond)
+	time.Sleep(1000 * time.Millisecond)
 }
