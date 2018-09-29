@@ -40,7 +40,10 @@ func Init(title string, w, h int32) {
 
 	renderer, err = sdl.CreateRenderer(window, -1, sdl.RENDERER_SOFTWARE)
 	if err != nil {
-		panic(err)
+		renderer, err = window.GetRenderer()
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	time.Sleep(time.Millisecond * 1000)
@@ -92,7 +95,7 @@ func WaitKey() rune {
 			break_loop = true
 		}
 	}
-
+	return 'a'
 }
 
 func workEvents() {
