@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
+	"math"
 	"time"
 )
 
@@ -26,8 +27,10 @@ func Init(title string, w, h int32) {
 		panic(err)
 	}
 
+	//window, err := sdl.CreateWindow(title, sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,
+	//	w, h, sdl.WINDOW_SHOWN)
 	window, err := sdl.CreateWindow(title, sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,
-		w, h, sdl.WINDOW_SHOWN)
+		w, h, sdl.WINDOW_SHOWN+sdl.WINDOW_RESIZABLE)
 
 	if font, err = ttf.OpenFont("test.ttf", 32); err != nil {
 		panic(err)
@@ -46,7 +49,7 @@ func Init(title string, w, h int32) {
 		}
 	}
 
-	time.Sleep(time.Millisecond * 1000)
+	time.Sleep(time.Millisecond * 10)
 
 }
 
@@ -71,7 +74,8 @@ func Flush() {
 }
 
 func Clear() {
-	//renderer.Clear()
+	SetColor(0, 0,0)
+	renderer.FillRect(&sdl.Rect{0, 0, 800, 600})
 }
 
 // draw funcs
@@ -133,7 +137,7 @@ func PutString(x, y int32, str string) {
 
 }
 
-func DrawCircle(x0, y0, radius int32) {
+func DrawPreciseCircle(x0, y0, radius int32) { // midpoint circle algorithm. Calculates each point of the circle.
 	x := radius - 1
 	var (
 		y, dx, dy int32
@@ -164,6 +168,24 @@ func DrawCircle(x0, y0, radius int32) {
 			dx += 2
 			err += dx - (radius << 1)
 		}
+	}
+}
+
+func DrawApproxCircle(x0, y0, radius, desiredPointsCount int32) { // draws the circle as a polygon.
+	pointsx := make([]int32, desiredPointsCount)
+	pointsy := make([]int32, desiredPointsCount)
+	anglePerPoint :=  (2 * 3.14159265358979323) / float64(desiredPointsCount)
+	var pointNum int32
+	for pointNum = 0; pointNum < desiredPointsCount; pointNum++ {
+		pointAngle := anglePerPoint * float64(pointNum)
+		x := float64(radius) * math.Sin(pointAngle)
+		y := float64(radius) * math.Cos(pointAngle)
+		pointsx[pointNum] = int32(x)+x0
+		pointsy[pointNum] = int32(y)+y0
+	}
+	for i:=0; i<len(pointsx); i++ {
+		indexNext := int32(i+1) % desiredPointsCount
+		DrawLine(pointsx[i], pointsy[i], pointsx[indexNext], pointsy[indexNext])
 	}
 }
 

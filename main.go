@@ -19,16 +19,23 @@ func main() {
 
 	total := 0
 	for {
+		sdl.Clear()
 
 		r := uint8(rand.Int31n(256))
 		g := uint8(rand.Int31n(256))
 		b := uint8(rand.Int31n(256))
 
 		sdl.SetColor(r, g, b)
-		x := rand.Int31n(800)
-		y := rand.Int31n(600)
-		rad := rand.Int31n(10)
-		sdl.FillCircle(x, y, rad)
+		x := int32(400) // rand.Int31n(800)
+		y := int32(300) // rand.Int31n(600)
+		rad := rand.Int31n(500) + 11
+		prec := time.Now()
+		sdl.DrawPreciseCircle(x, y, rad-10)
+		timePrec := time.Since(prec)
+		app := time.Now()
+		sdl.DrawApproxCircle(x, y, rad, 25)
+		timeapp := time.Since(app)
+		sdl.PutString(0, 0, fmt.Sprintf("PREC %d, APP %d, diff %d", timePrec, timeapp, timePrec - timeapp))
 		sdl.Flush()
 		sdl.WaitKey()
 
