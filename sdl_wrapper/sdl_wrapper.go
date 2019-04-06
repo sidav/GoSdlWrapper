@@ -1,5 +1,6 @@
 package sdl_wrapper
 
+import "C"
 import (
 	"fmt"
 	"github.com/veandco/go-sdl2/sdl"
@@ -74,7 +75,7 @@ func Flush() {
 }
 
 func Clear() {
-	SetColor(0, 0,0)
+	SetColor(0, 0, 0)
 	renderer.FillRect(&sdl.Rect{0, 0, 800, 600})
 }
 
@@ -137,6 +138,58 @@ func PutString(x, y int32, str string) {
 
 }
 
+func hline(x1, x2, y float32) {
+	DrawLine(int32(x1), int32(y), int32(x2), int32(y))
+}
+
+func swapCoords(x1, y1, x2, y2 float32) (float32, float32, float32, float32) {
+	return x2, y2, x1, y1
+}
+
+func FillTriangle(x1, y1, x2, y2, x3, y3 int32) {
+	hx, hy, mx, my, lx, ly := float32(x1), float32(y1), float32(x2), float32(y2), float32(x3), float32(y3)
+	if hy > my {
+		hx, hy, mx, my = swapCoords(hx, hy, mx, my)
+	}
+	if my > ly {
+		lx, ly, mx, my = swapCoords(lx, ly, mx, my)
+	}
+	if hy > my {
+		hx, hy, mx, my = swapCoords(hx, hy, mx, my)
+	}
+	// assuming (hx, hy) as the highest
+	x_hl := hx
+	x_hm := hx
+	if hy == my {
+		x_hm = mx
+	}
+	dx_hl := (hx - lx) / (hy-ly)
+	var dx_hm float32
+	if hy - my == 0 {
+		dx_hm = 0
+	} else {
+		dx_hm = (hx-mx)/(hy-my)
+	}
+	for y:=hy; y<=my; y++ {
+		hline(x_hl, x_hm, y)
+		x_hl += dx_hl
+		x_hm += dx_hm
+	}
+	x_ml := x_hm
+	var dx_ml float32
+	if my-ly == 0 {
+		dx_ml = 0
+	} else {
+		dx_ml = (mx-lx)/(my-ly)
+	}
+	for y:=my; y<=ly;y++{
+		hline(x_hl, x_ml, y)
+		x_hl+= dx_hl
+		x_ml += dx_ml
+	}
+	fmt.Printf("hl %d ml %d hm %d \n", dx_hl, dx_ml, dx_hm)
+}
+
 func DrawPreciseCircle(x0, y0, radius int32) { // midpoint circle algorithm. Calculates each point of the circle.
 	x := radius - 1
 	var (
@@ -174,18 +227,36 @@ func DrawPreciseCircle(x0, y0, radius int32) { // midpoint circle algorithm. Cal
 func DrawApproxCircle(x0, y0, radius, desiredPointsCount int32) { // draws the circle as a polygon.
 	pointsx := make([]int32, desiredPointsCount)
 	pointsy := make([]int32, desiredPointsCount)
-	anglePerPoint :=  (2 * 3.14159265358979323) / float64(desiredPointsCount)
+	anglePerPoint := (2 * 3.14159265358979323) / float64(desiredPointsCount)
 	var pointNum int32
 	for pointNum = 0; pointNum < desiredPointsCount; pointNum++ {
 		pointAngle := anglePerPoint * float64(pointNum)
 		x := float64(radius) * math.Sin(pointAngle)
 		y := float64(radius) * math.Cos(pointAngle)
-		pointsx[pointNum] = int32(x)+x0
-		pointsy[pointNum] = int32(y)+y0
+		pointsx[pointNum] = int32(x) + x0
+		pointsy[pointNum] = int32(y) + y0
 	}
-	for i:=0; i<len(pointsx); i++ {
+	for i := 0; i < len(pointsx); i++ {
 		indexNext := int32(i+1) % desiredPointsCount
 		DrawLine(pointsx[i], pointsy[i], pointsx[indexNext], pointsy[indexNext])
+	}
+}
+
+func FillApproxCircle(x0, y0, radius, desiredPointsCount int32) { // draws the circle as a polygon.
+	pointsx := make([]int32, desiredPointsCount)
+	pointsy := make([]int32, desiredPointsCount)
+	anglePerPoint := (2 * 3.14159265358979323) / float64(desiredPointsCount)
+	var pointNum int32
+	for pointNum = 0; pointNum < desiredPointsCount; pointNum++ {
+		pointAngle := anglePerPoint * float64(pointNum)
+		x := float64(radius) * math.Sin(pointAngle)
+		y := float64(radius) * math.Cos(pointAngle)
+		pointsx[pointNum] = int32(x) + x0
+		pointsy[pointNum] = int32(y) + y0
+	}
+	for i := 0; i < len(pointsx); i++ {
+		indexNext := int32(i+1) % desiredPointsCount
+		FillTriangle(x0, y0, pointsx[i], pointsy[i], pointsx[indexNext], pointsy[indexNext])
 	}
 }
 
