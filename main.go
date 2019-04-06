@@ -31,13 +31,14 @@ func main() {
 		y := int32(300) // rand.Int31n(600)
 		rad := rand.Int31n(500) + 11
 		prec := time.Now()
-		sdl.DrawPreciseCircle(x, y, rad-10)
+		sdl.FillPreciseCircle(x, y, rad-10)
 		timePrec := time.Since(prec)
 		app := time.Now()
-		sdl.DrawApproxCircle(x, y, rad, 25)
-		sdl.FillApproxCircle(x, y, rad, 52)
+		// sdl.DrawApproxCircle(x, y, rad, 1000)
+		sdl.FillApproxCircle(x, y, rad, 4)
 		timeapp := time.Since(app)
 		sdl.PutString(0, 0, fmt.Sprintf("PREC %d, APP %d, diff %d", timePrec, timeapp, timePrec - timeapp))
+		fmt.Printf("PREC %d, APP %d, diff %d", timePrec, timeapp, timePrec - timeapp)
 
 		//x1 := int32(100)// rand.Int31n(500)
 		//x2 := int32(200) // rand.Int31n(500)

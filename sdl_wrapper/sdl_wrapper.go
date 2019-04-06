@@ -138,58 +138,6 @@ func PutString(x, y int32, str string) {
 
 }
 
-func hline(x1, x2, y float32) {
-	DrawLine(int32(x1), int32(y), int32(x2), int32(y))
-}
-
-func swapCoords(x1, y1, x2, y2 float32) (float32, float32, float32, float32) {
-	return x2, y2, x1, y1
-}
-
-func FillTriangle(x1, y1, x2, y2, x3, y3 int32) {
-	hx, hy, mx, my, lx, ly := float32(x1), float32(y1), float32(x2), float32(y2), float32(x3), float32(y3)
-	if hy > my {
-		hx, hy, mx, my = swapCoords(hx, hy, mx, my)
-	}
-	if my > ly {
-		lx, ly, mx, my = swapCoords(lx, ly, mx, my)
-	}
-	if hy > my {
-		hx, hy, mx, my = swapCoords(hx, hy, mx, my)
-	}
-	// assuming (hx, hy) as the highest
-	x_hl := hx
-	x_hm := hx
-	if hy == my {
-		x_hm = mx
-	}
-	dx_hl := (hx - lx) / (hy-ly)
-	var dx_hm float32
-	if hy - my == 0 {
-		dx_hm = 0
-	} else {
-		dx_hm = (hx-mx)/(hy-my)
-	}
-	for y:=hy; y<=my; y++ {
-		hline(x_hl, x_hm, y)
-		x_hl += dx_hl
-		x_hm += dx_hm
-	}
-	x_ml := x_hm
-	var dx_ml float32
-	if my-ly == 0 {
-		dx_ml = 0
-	} else {
-		dx_ml = (mx-lx)/(my-ly)
-	}
-	for y:=my; y<=ly;y++{
-		hline(x_hl, x_ml, y)
-		x_hl+= dx_hl
-		x_ml += dx_ml
-	}
-	fmt.Printf("hl %d ml %d hm %d \n", dx_hl, dx_ml, dx_hm)
-}
-
 func DrawPreciseCircle(x0, y0, radius int32) { // midpoint circle algorithm. Calculates each point of the circle.
 	x := radius - 1
 	var (
@@ -256,11 +204,11 @@ func FillApproxCircle(x0, y0, radius, desiredPointsCount int32) { // draws the c
 	}
 	for i := 0; i < len(pointsx); i++ {
 		indexNext := int32(i+1) % desiredPointsCount
-		FillTriangle(x0, y0, pointsx[i], pointsy[i], pointsx[indexNext], pointsy[indexNext])
+		FillTriangleslope(x0, y0, pointsx[i], pointsy[i], pointsx[indexNext], pointsy[indexNext])
 	}
 }
 
-func FillCircle(x0, y0, radius int32) {
+func FillPreciseCircle(x0, y0, radius int32) {
 	x := radius - 1
 	var (
 		y, dx, dy int32
@@ -288,5 +236,91 @@ func FillCircle(x0, y0, radius int32) {
 			err += dx - (radius << 1)
 		}
 	}
+}
 
+// Fill a triangle - slope method
+// Original Author: Adafruit Industries
+func swapCoords(x1, y1, x2, y2 int32) (int32, int32, int32, int32) {
+	return x2, y2, x1, y1
+}
+
+func hline(x1, x2, y int32) {
+	for x:=x1; x<x2; x++ {
+		renderer.DrawPoint(x, y)
+	}
+	DrawLine((x1), (y), (x2), (y))
+}
+func FillTriangleslope(x0, y0, x1, y1, x2, y2 int32) {
+	var a, b, y, last int32
+	// Sort coordinates by Y order (y2 >= y1 >= y0)
+	if y0 > y1 {
+		x0, y0, x1, y1 = swapCoords(x0, y0, x1, y1)
+	}
+	if y1 > y2 {
+		x2, y2, x1, y1 = swapCoords(x2, y2, x1, y1)
+	}
+	if y0 > y1 {
+		x0, y0, x1, y1 = swapCoords(x0, y0, x1, y1)
+	}
+
+	if (y0 == y2) { // All on same line case
+		a = x0
+		b = x0
+		if (x1 < a) {
+			a = x1
+		} else if (x1 > b) {
+			b = x1
+		}
+		if (x2 < a)      {
+			a = x2
+		} else if (x2 > b) {
+			b = x2
+		}
+		hline(a, b, y0)
+		return
+	}
+
+	dx01 := x1-x0
+	dy01 := y1 - y0
+	dx02 := x2-x0
+	dy02 := y2 - y0
+	dx12 := x2-x1
+	dy12 := y2 - y1
+	var sa, sb int32
+
+	// For upper part of triangle, find scanline crossings for segment
+	// 0-1 and 0-2.  If y1=y2 (flat-bottomed triangle), the scanline y
+	// is included here (and second loop will be skipped, avoiding a /
+	// error there), otherwise scanline y1 is skipped here and handle
+	// in the second loop...which also avoids a /0 error here if y0=y
+	// (flat-topped triangle)
+	if (y1 == y2) {
+		last = y1  // Include y1 scanline
+	}  else {
+		last = y1 - 1
+	} // Skip it
+
+	for y = y0; y <= last; y++ {
+		a = x0 + sa/dy01
+		b = x0 + sb/dy02
+		sa += dx01
+		sb += dx02
+		// longhand a = x0 + (x1 - x0) * (y - y0) / (y1 - y0)
+		//          b = x0 + (x2 - x0) * (y - y0) / (y2 - y0)
+		hline(a, b, y)
+	}
+
+	// For lower part of triangle, find scanline crossings for segment
+	// 0-2 and 1-2.  This loop is skipped if y1=y2
+	sa = dx12 * (y - y1)
+	sb = dx02 * (y - y0)
+	for ; y <= y2; y++ {
+		a = x1 + sa/dy12
+		b = x0 + sb/dy02
+		sa += dx12
+		sb += dx02
+		// longhand a = x1 + (x2 - x1) * (y - y1) / (y2 - y1)
+		//          b = x0 + (x2 - x0) * (y - y0) / (y2 - y0)
+		hline(a, b, y)
+	}
 }
