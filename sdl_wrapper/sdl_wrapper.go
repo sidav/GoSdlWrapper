@@ -204,7 +204,8 @@ func FillApproxCircle(x0, y0, radius, desiredPointsCount int32) { // draws the c
 	}
 	for i := 0; i < len(pointsx); i++ {
 		indexNext := int32(i+1) % desiredPointsCount
-		FillTriangleslope(x0, y0, pointsx[i], pointsy[i], pointsx[indexNext], pointsy[indexNext])
+		// FillTriangleslope(x0, y0, pointsx[i], pointsy[i], pointsx[indexNext], pointsy[indexNext])
+		fillTriangle(x0, y0, pointsx[i], pointsy[i], pointsx[indexNext], pointsy[indexNext])
 	}
 }
 
@@ -245,7 +246,7 @@ func swapCoords(x1, y1, x2, y2 int32) (int32, int32, int32, int32) {
 }
 
 func hline(x1, x2, y int32) {
-	for x:=x1; x<x2; x++ {
+	for x := x1; x < x2; x++ {
 		renderer.DrawPoint(x, y)
 	}
 	DrawLine((x1), (y), (x2), (y))
@@ -271,7 +272,7 @@ func FillTriangleslope(x0, y0, x1, y1, x2, y2 int32) {
 		} else if (x1 > b) {
 			b = x1
 		}
-		if (x2 < a)      {
+		if (x2 < a) {
 			a = x2
 		} else if (x2 > b) {
 			b = x2
@@ -280,11 +281,11 @@ func FillTriangleslope(x0, y0, x1, y1, x2, y2 int32) {
 		return
 	}
 
-	dx01 := x1-x0
+	dx01 := x1 - x0
 	dy01 := y1 - y0
-	dx02 := x2-x0
+	dx02 := x2 - x0
 	dy02 := y2 - y0
-	dx12 := x2-x1
+	dx12 := x2 - x1
 	dy12 := y2 - y1
 	var sa, sb int32
 
@@ -295,8 +296,8 @@ func FillTriangleslope(x0, y0, x1, y1, x2, y2 int32) {
 	// in the second loop...which also avoids a /0 error here if y0=y
 	// (flat-topped triangle)
 	if (y1 == y2) {
-		last = y1  // Include y1 scanline
-	}  else {
+		last = y1 // Include y1 scanline
+	} else {
 		last = y1 - 1
 	} // Skip it
 
@@ -322,5 +323,234 @@ func FillTriangleslope(x0, y0, x1, y1, x2, y2 int32) {
 		// longhand a = x1 + (x2 - x1) * (y - y1) / (y2 - y1)
 		//          b = x0 + (x2 - x0) * (y - y0) / (y2 - y0)
 		hline(a, b, y)
+	}
+}
+
+// Fill a triangle - Bresenham method
+// Original from http://www.sunshine2k.de/coding/java/TriangleRasterization/TriangleRasterization.html
+func fillTriangle(x1, y1, x2, y2, x3, y3 int32) {
+	var t1x, t2x, y, minx, maxx, t1xp, t2xp int32
+	changed1 := false;
+	changed2 := false;
+	var signx1, signx2, dx1, dy1, dx2, dy2 int32
+	var e1, e2 int32
+	// Sort vertices
+	if y1 > y2 {
+		x1, y1, x2, y2 = swapCoords(x1, y1, x2, y2)
+	}
+	if y2 > y3 {
+		x3, y3, x2, y2 = swapCoords(x3, y3, x2, y2)
+	}
+	if y1 > y2 {
+		x1, y1, x2, y2 = swapCoords(x1, y1, x2, y2)
+	}
+
+	t1x = x2
+	t2x = x2
+	y = y1 // Starting points
+
+	dx1 = (x2 - x1)
+	if (dx1 < 0) {
+		dx1 = -dx1;
+		signx1 = -1;
+	} else {
+		signx1 = 1;
+	}
+	dy1 = (y2 - y1);
+
+	dx2 = (x3 - x1);
+	if (dx2 < 0) {
+		dx2 = -dx2;
+		signx2 = -1;
+	} else {
+		signx2 = 1;
+	}
+	dy2 = (y3 - y1);
+	if (dy1 > dx1) { // swap values
+		dx1, dy1 = dy1, dx1
+		changed1 = true;
+	}
+	if (dy2 > dx2) { // swap values
+		dx2, dy2 = dy2, dx2
+		changed2 = true;
+	}
+
+	e2 = (dx2 >> 1);
+	// Flat top, just process the second half
+	if !(y1 == y2) {
+		e1 = (dx1 >> 1);
+		var i int32
+		for i = 0; i < dx1; {
+			t1xp = 0;
+			t2xp = 0;
+			if (t1x < t2x) {
+				minx = t1x;
+				maxx = t2x;
+			} else {
+				minx = t2x;
+				maxx = t1x;
+			}
+			// process first line until y value is about to change
+			for (i < dx1) {
+				i++;
+				e1 += dy1;
+				for (e1 >= dx1) {
+					e1 -= dx1;
+					if (changed1) {
+						t1xp = signx1
+					} else {
+						goto next1
+					}
+				}
+				if (changed1) {
+					break
+				} else
+				{
+					t1x += signx1
+				}
+			}
+			// Move line
+		next1:
+			// process second line until y value is about to change
+			for {
+				e2 += dy2;
+				for (e2 >= dx2) {
+					e2 -= dx2;
+					if (changed2) {
+						t2xp = signx2
+					} else {
+						goto next2;
+					}
+				}
+				if (changed2) {
+					break
+				} else {
+					t2x += signx2
+				}
+			}
+		next2:
+			if (minx > t1x) {
+				minx = t1x
+			};
+			if (minx > t2x) {
+				minx = t2x
+			};
+			if (maxx < t1x) {
+				maxx = t1x
+			};
+			if (maxx < t2x) {
+				maxx = t2x
+			};
+			hline(minx, maxx, y); // Draw line from min to max points found on the y
+			// Now increase y
+			if (!changed1) {
+				t1x += signx1
+			};
+			t1x += t1xp;
+			if (!changed2) {
+				t2x += signx2
+			};
+			t2x += t2xp;
+			y += 1;
+			if (y == y3) {
+				break
+			}
+		}
+	}
+// next:
+	// Second half
+	dx1 = (x3 - x2);
+	if (dx1 < 0) {
+		dx1 = -dx1;
+		signx1 = -1;
+	} else {
+		signx1 = 1;
+	}
+	dy1 = (y3 - y2);
+	t1x = x2;
+	if (dy1 > dx1) { // swap values
+		dy1, dx1 = dx1, dy1
+		changed1 = true;
+	} else {
+		changed1 = false;
+	}
+	e1 = (dx1 >> 1);
+	var i int32
+	for i = 0; i <= dx1; i++ {
+		t1xp = 0;
+		t2xp = 0;
+		if (t1x < t2x) {
+			minx = t1x;
+			maxx = t2x;
+		} else {
+			minx = t2x;
+			maxx = t1x;
+		}
+		// process first line until y value is about to change
+		for (i < dx1) {
+			e1 += dy1;
+			for (e1 >= dx1) {
+				e1 -= dx1;
+				if (changed1) {
+					t1xp = signx1;
+					break;
+				} else {
+					goto next3;
+				}
+			}
+			if (changed1) {
+				break;
+			} else          {
+				t1x += signx1
+			}
+			if (i < dx1) {
+				i++
+			};
+		}
+	next3:
+		// process second line until y value is about to change
+		for (t2x != x3) {
+			e2 += dy2;
+			for (e2 >= dx2) {
+				e2 -= dx2;
+				if (changed2) {
+					t2xp = signx2
+				} else {
+					goto next4
+				}
+			}
+			if (changed2) {
+				break;
+			} else {
+				t2x += signx2
+			};
+		}
+	next4:
+		if (minx > t1x) {
+			minx = t1x
+		};
+		if (minx > t2x) {
+			minx = t2x
+		};
+		if (maxx < t1x) {
+			maxx = t1x
+		};
+		if (maxx < t2x) {
+			maxx = t2x
+		};
+		hline(minx, maxx, y); // Draw line from min to max points found on the y
+		// Now increase y
+		if (!changed1) {
+			t1x += signx1
+		};
+		t1x += t1xp;
+		if (!changed2) {
+			t2x += signx2
+		};
+		t2x += t2xp;
+		y += 1;
+		if (y > y3) {
+			return;
+		}
 	}
 }

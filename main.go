@@ -31,7 +31,7 @@ func main() {
 		y := int32(300) // rand.Int31n(600)
 		rad := rand.Int31n(500) + 11
 		prec := time.Now()
-		sdl.FillPreciseCircle(x, y, rad-10)
+		// sdl.FillPreciseCircle(x, y, rad-10)
 		timePrec := time.Since(prec)
 		app := time.Now()
 		// sdl.DrawApproxCircle(x, y, rad, 1000)
