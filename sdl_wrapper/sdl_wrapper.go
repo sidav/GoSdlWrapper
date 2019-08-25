@@ -18,7 +18,7 @@ var (
 
 // system funcs
 
-func Init(title string, w, h int32) {
+func Init(title string, windowW, windowH, renderW, renderH int32) {
 
 	if err := sdl.Init(sdl.INIT_EVERYTHING); err != nil {
 		panic(err)
@@ -29,9 +29,9 @@ func Init(title string, w, h int32) {
 	}
 
 	//window, err := sdl.CreateWindow(title, sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,
-	//	w, h, sdl.WINDOW_SHOWN)
+	//	windowW, windowH, sdl.WINDOW_SHOWN)
 	window, err := sdl.CreateWindow(title, sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,
-		w, h, sdl.WINDOW_SHOWN+sdl.WINDOW_RESIZABLE)
+		windowW, windowH, sdl.WINDOW_SHOWN+sdl.WINDOW_RESIZABLE)
 
 	if font, err = ttf.OpenFont("test.ttf", 32); err != nil {
 		panic(err)
@@ -49,6 +49,8 @@ func Init(title string, w, h int32) {
 			panic(err)
 		}
 	}
+
+	renderer.SetLogicalSize(renderW, renderH)
 
 	time.Sleep(time.Millisecond * 10)
 
