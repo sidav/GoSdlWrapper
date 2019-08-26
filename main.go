@@ -7,9 +7,16 @@ import (
 	"time"
 )
 
+const (
+	W = 400
+	H = 300
+	CENTERX = int32(W/2)
+	CENTERY = int32(H/2)
+)
+
 func main() {
 
-	sdl.Init("SDL WRAPPER TEST", 800, 600)
+	sdl.Init("SDL WRAPPER TEST", 800, 600 , W, H)
 
 	defer sdl.Defer_me()
 
@@ -27,15 +34,13 @@ func main() {
 
 		sdl.SetColor(r, g, b)
 
-		x := int32(400) // rand.Int31n(800)
-		y := int32(300) // rand.Int31n(600)
-		rad := rand.Int31n(500) + 11
+		rad := rand.Int31n(CENTERX) + 11
 		prec := time.Now()
-		// sdl.FillPreciseCircle(x, y, rad-10)
+		sdl.FillPreciseCircle(CENTERX, CENTERY, rad-10)
 		timePrec := time.Since(prec)
 		app := time.Now()
 		// sdl.DrawApproxCircle(x, y, rad, 1000)
-		sdl.FillApproxCircle(x, y, rad, 4)
+		sdl.FillApproxCircle(CENTERX, CENTERY, rad, 4)
 		timeapp := time.Since(app)
 		sdl.PutString(0, 0, fmt.Sprintf("PREC %d, APP %d, diff %d", timePrec, timeapp, timePrec - timeapp))
 		fmt.Printf("PREC %d, APP %d, diff %d", timePrec, timeapp, timePrec - timeapp)
